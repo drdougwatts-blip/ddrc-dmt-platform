@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #333333;
+    background-color: #F0F5F7;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: Georgia, serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-navy text-white px-6 py-2.5 rounded-lg font-medium
+           hover:bg-opacity-90 transition-colors duration-150
+           focus:outline-none focus:ring-2 focus:ring-navy focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-teal text-white px-6 py-2.5 rounded-lg font-medium
+           hover:bg-opacity-90 transition-colors duration-150
+           focus:outline-none focus:ring-2 focus:ring-teal focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply border-2 border-navy text-navy px-6 py-2.5 rounded-lg font-medium
+           hover:bg-navy hover:text-white transition-colors duration-150
+           focus:outline-none focus:ring-2 focus:ring-navy focus:ring-offset-2;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-teal focus:border-transparent
+           text-text-primary placeholder-text-muted;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-text-primary mb-1.5;
+  }
+}
