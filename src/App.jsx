@@ -14,6 +14,7 @@ import AdminSessions from './pages/AdminSessions'
 import AdminCandidates from './pages/AdminCandidates'
 import AdminNotifications from './pages/AdminNotifications'
 import Certificate from './pages/Certificate'
+import Assessment from './pages/Assessment'
 
 export default function App() {
   return (
@@ -39,6 +40,9 @@ export default function App() {
           } />
           <Route path="/certificate" element={
             <PrivateRoute><Certificate /></PrivateRoute>
+          } />
+          <Route path="/assessment" element={
+            <PrivateRoute><Assessment /></PrivateRoute>
           } />
 
           {/* Admin routes */}

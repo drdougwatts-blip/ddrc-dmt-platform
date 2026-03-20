@@ -298,6 +298,15 @@ export default function Dashboard() {
           </Link>
         </div>
         <div className="card">
+          <h3 className="font-heading text-sm font-semibold text-navy mb-2">Final Assessment</h3>
+          <p className="text-sm text-text-muted mb-3">
+            Summative exam covering all course topics. 70% pass mark.
+          </p>
+          <Link to="/assessment" className="text-sm text-teal font-medium hover:underline">
+            Take assessment &rarr;
+          </Link>
+        </div>
+        <div className="card">
           <h3 className="font-heading text-sm font-semibold text-navy mb-2">Certificate</h3>
           <p className="text-sm text-text-muted mb-3">
             {completedCount === allModules.length && allModules.length > 0
