@@ -4,7 +4,7 @@ export const modules = [
     id: 'O1_1',
     code: 'O1.1',
     title: 'Physiology Review',
-    subtitle: 'Respiratory, cardiovascular, and nervous system fundamentals',
+    subtitle: 'Body systems relevant to injury assessment and clinical skills',
     courseTypes: ['full'],
     day: 'Monday',
     dayNumber: 1,
@@ -13,7 +13,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Core physiological principles underpinning dive medicine, covering respiratory, cardiovascular, and nervous system anatomy and function.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'O1_2',
@@ -28,7 +28,7 @@ export const modules = [
     instructor: 'SI',
     description: 'The physical laws governing diving including Boyle\'s, Dalton\'s, and Henry\'s laws, and their clinical relevance.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'O1_3',
@@ -43,7 +43,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Understanding the role, responsibilities, and legal framework for Diver Medic Technicians in commercial and recreational diving.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'O1_4',
@@ -58,7 +58,7 @@ export const modules = [
     instructor: 'SI',
     description: 'First aid principles applied to the diving environment including primary and secondary surveys, oxygen administration, and casualty management.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'O2_1',
@@ -73,7 +73,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Toxic effects of breathing gases under pressure, including oxygen toxicity, nitrogen narcosis, carbon dioxide retention, and carbon monoxide poisoning.',
     prerequisites: ['O1_1', 'O1_2'],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'O2_2',
@@ -88,7 +88,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Barotrauma affecting the ears, sinuses, lungs, and other gas-filled spaces, with emphasis on recognition and management.',
     prerequisites: ['O1_1', 'O1_2'],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'O3_4',
@@ -103,7 +103,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Additional medical topics relevant to diving medicine including fitness to dive, contraindications, and return-to-diving criteria.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'O3_1',
@@ -118,7 +118,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Recognition and management of shock in its various forms, burn injuries, and blast injury in the diving and offshore environment.',
     prerequisites: ['O1_4'],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'O3_2',
@@ -133,7 +133,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Thermal injuries, near-drowning, and environmental conditions affecting divers including hypothermia, hyperthermia, and marine envenomation.',
     prerequisites: ['O1_4'],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'O2_3',
@@ -148,7 +148,7 @@ export const modules = [
     instructor: 'DMP',
     description: 'Comprehensive coverage of decompression illness including pathophysiology, clinical presentation, differential diagnosis, and recompression treatment.',
     prerequisites: ['O1_1', 'O1_2'],
-    contentReady: false,
+    contentReady: true,
     shared: true,
   },
   {
@@ -164,7 +164,7 @@ export const modules = [
     instructor: 'DMP',
     description: 'Pharmacology relevant to diving medicine, including drug classes, routes of administration, drug interactions, and management under pressure.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
     shared: true,
   },
   // --- Refresher Modules ---
@@ -181,7 +181,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Update on current resuscitation guidelines, including changes to protocols and new evidence-based practices.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'RM6',
@@ -196,7 +196,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Review of systematic casualty examination techniques and updates to clinical assessment procedures.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'RM5',
@@ -211,7 +211,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Best practices in communication during diving operations and maintaining accurate medical records.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'RM4',
@@ -226,7 +226,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Overview of new techniques, equipment, and technological advances relevant to the DMT role.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
   },
   {
     id: 'RM2',
@@ -241,7 +241,7 @@ export const modules = [
     instructor: 'DMP',
     description: 'Update on decompression illness including latest research, treatment protocols, and case studies.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
     shared: true,
     sharedWith: 'O2_3',
   },
@@ -258,7 +258,7 @@ export const modules = [
     instructor: 'DMP',
     description: 'Update on pharmacological practices, new medications, and changes to drug management protocols.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
     shared: true,
     sharedWith: 'O3_3',
   },
@@ -275,7 +275,7 @@ export const modules = [
     instructor: 'SI',
     description: 'Review and analysis of diving accidents and incidents with learning points for improved practice.',
     prerequisites: [],
-    contentReady: false,
+    contentReady: true,
   },
 ]
 

@@ -1,6 +1,8 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getModuleById } from '../modules/moduleData'
+import { getModuleContent } from '../modules/content'
+import ModuleContent from '../components/ModuleContent'
 import Layout from '../components/Layout'
 
 export default function ModulePage() {
@@ -28,6 +30,8 @@ export default function ModulePage() {
     navigate('/dashboard', { replace: true })
     return null
   }
+
+  const content = getModuleContent(moduleId)
 
   return (
     <Layout>
@@ -84,19 +88,23 @@ export default function ModulePage() {
           </div>
         </div>
 
-        {/* Placeholder Content */}
-        <div className="card text-center py-12">
-          <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-          <h2 className="font-heading text-lg font-semibold text-navy mb-2">
-            Module content is being prepared
-          </h2>
-          <p className="text-text-muted max-w-md mx-auto">
-            This page will contain the full teaching material, key reference points,
-            and a formative quiz. Content will be available before your course begins.
-          </p>
-        </div>
+        {/* Module Content or Placeholder */}
+        {content ? (
+          <ModuleContent moduleData={module} content={content} />
+        ) : (
+          <div className="card text-center py-12">
+            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <h2 className="font-heading text-lg font-semibold text-navy mb-2">
+              Module content is being prepared
+            </h2>
+            <p className="text-text-muted max-w-md mx-auto">
+              This page will contain the full teaching material, key reference points,
+              and a formative quiz. Content will be available before your course begins.
+            </p>
+          </div>
+        )}
       </div>
     </Layout>
   )
