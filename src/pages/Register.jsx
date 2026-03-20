@@ -67,14 +67,17 @@ export default function Register() {
 
       navigate('/dashboard')
     } catch (err) {
+      console.error('Registration error:', err.code, err.message, err)
       if (err.code === 'auth/email-already-in-use') {
         setError('An account with this email already exists.')
       } else if (err.code === 'auth/weak-password') {
         setError('Password is too weak. Please use at least 8 characters.')
       } else if (err.code === 'auth/invalid-email') {
         setError('Please enter a valid email address.')
+      } else if (err.code === 'permission-denied' || err.message?.includes('permission')) {
+        setError('Database permission error. Please contact DDRC support.')
       } else {
-        setError('An error occurred during registration. Please try again.')
+        setError(`Registration failed: ${err.message || 'Unknown error. Please try again.'}`)
       }
     } finally {
       setLoading(false)
