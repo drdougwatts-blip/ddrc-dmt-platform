@@ -21,12 +21,14 @@ export default function Layout({ children }) {
   const candidateLinks = [
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/reference-library', label: 'Reference Library' },
+    { to: '/file-library', label: 'File Library' },
   ]
 
   const adminLinks = [
     { to: '/admin', label: 'Dashboard' },
     { to: '/admin/cohorts', label: 'Cohorts' },
     { to: '/admin/candidates', label: 'Candidates' },
+    { to: '/admin/files', label: 'Files' },
   ]
 
   const navLinks = isAdmin ? adminLinks : candidateLinks

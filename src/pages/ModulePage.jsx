@@ -1,14 +1,19 @@
+import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getModuleById } from '../modules/moduleData'
 import { getModuleContent } from '../modules/content'
+import { getModuleQuiz } from '../modules/quizzes'
 import ModuleContent from '../components/ModuleContent'
+import QuizEngine from '../components/QuizEngine'
 import Layout from '../components/Layout'
 
 export default function ModulePage() {
   const { moduleId } = useParams()
   const { userProfile } = useAuth()
   const navigate = useNavigate()
+  const [showQuiz, setShowQuiz] = useState(false)
+  const [quizScore, setQuizScore] = useState(null)
 
   const module = getModuleById(moduleId)
 
@@ -32,6 +37,12 @@ export default function ModulePage() {
   }
 
   const content = getModuleContent(moduleId)
+  const quiz = getModuleQuiz(moduleId)
+
+  function handleQuizComplete(score) {
+    setQuizScore(score)
+    setShowQuiz(false)
+  }
 
   return (
     <Layout>
@@ -88,8 +99,54 @@ export default function ModulePage() {
           </div>
         </div>
 
-        {/* Module Content or Placeholder */}
-        {content ? (
+        {/* Tab Switch: Content / Quiz */}
+        {content && quiz && quiz.length > 0 && (
+          <div className="flex gap-2 mb-6">
+            <button
+              onClick={() => setShowQuiz(false)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                !showQuiz
+                  ? 'bg-navy text-white'
+                  : 'bg-gray-100 text-text-muted hover:bg-gray-200'
+              }`}
+            >
+              Module Content
+            </button>
+            <button
+              onClick={() => setShowQuiz(true)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                showQuiz
+                  ? 'bg-navy text-white'
+                  : 'bg-gray-100 text-text-muted hover:bg-gray-200'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              Take Quiz
+              {quizScore !== null && (
+                <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+                  quizScore >= 80
+                    ? 'bg-success-green/20 text-success-green'
+                    : quizScore >= 60
+                    ? 'bg-warning-amber/20 text-warning-amber'
+                    : 'bg-error-red/20 text-error-red'
+                }`}>
+                  {quizScore}%
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Quiz View */}
+        {showQuiz && quiz && quiz.length > 0 ? (
+          <QuizEngine
+            questions={quiz}
+            moduleId={moduleId}
+            onComplete={handleQuizComplete}
+          />
+        ) : content ? (
           <ModuleContent moduleData={module} content={content} />
         ) : (
           <div className="card text-center py-12">

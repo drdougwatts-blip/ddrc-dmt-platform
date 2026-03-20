@@ -7,6 +7,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import ModulePage from './pages/ModulePage'
 import ReferenceLibrary from './pages/ReferenceLibrary'
+import FileLibrary from './pages/FileLibrary'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminCohorts from './pages/AdminCohorts'
 import AdminCandidates from './pages/AdminCandidates'
@@ -30,6 +31,9 @@ export default function App() {
           <Route path="/reference-library" element={
             <PrivateRoute><ReferenceLibrary /></PrivateRoute>
           } />
+          <Route path="/file-library" element={
+            <PrivateRoute><FileLibrary /></PrivateRoute>
+          } />
 
           {/* Admin routes */}
           <Route path="/admin" element={
@@ -40,6 +44,9 @@ export default function App() {
           } />
           <Route path="/admin/candidates" element={
             <AdminRoute><AdminCandidates /></AdminRoute>
+          } />
+          <Route path="/admin/files" element={
+            <AdminRoute><FileLibrary /></AdminRoute>
           } />
 
           {/* Default redirect */}

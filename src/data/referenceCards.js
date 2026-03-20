@@ -1,0 +1,611 @@
+export const referenceCards = [
+  {
+    id: 'abcde-survey',
+    title: 'ABCDE Primary Survey',
+    category: 'Clinical Assessment',
+    moduleRef: 'O1_4',
+    icon: 'clipboard',
+    content: [
+      {
+        heading: 'A — Airway',
+        items: [
+          'Look, listen, feel for air movement',
+          'Head tilt chin lift (if no C-spine concern)',
+          'Jaw thrust (if C-spine concern)',
+          'Suction if needed',
+          'OPA/NPA if unconscious',
+          'i-gel if trained and indicated',
+        ],
+      },
+      {
+        heading: 'B — Breathing',
+        items: [
+          'Expose the chest',
+          'Rate, depth, pattern, symmetry',
+          'SpO₂ measurement',
+          'High-flow O₂ via reservoir mask (15 L/min)',
+          'Look for: tracheal deviation, chest wounds, flail segment',
+          'Tension pneumothorax = life-threatening emergency',
+        ],
+      },
+      {
+        heading: 'C — Circulation',
+        items: [
+          'Pulse: rate, rhythm, strength',
+          'Blood pressure',
+          'Capillary refill time (CRT) — normal <2 seconds',
+          'Control visible haemorrhage (direct pressure)',
+          'IV access — two large-bore cannulae',
+          'Fluid resuscitation if signs of shock',
+        ],
+      },
+      {
+        heading: 'D — Disability',
+        items: [
+          'AVPU or GCS assessment',
+          'Pupil size and reactivity',
+          'Blood glucose if available',
+          'Lateralising signs (one side weaker than the other)',
+          'Full neurological exam if DCI suspected',
+        ],
+      },
+      {
+        heading: 'E — Exposure',
+        items: [
+          'Fully expose the patient (preserve dignity)',
+          'Check temperature',
+          'Log roll to examine back',
+          'Look for rashes, injuries, needle marks',
+          'Prevent hypothermia — cover after examination',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'dci-recognition',
+    title: 'DCI Recognition & Management',
+    category: 'Diving Medicine',
+    moduleRef: 'O2_3',
+    icon: 'alert',
+    content: [
+      {
+        heading: 'Type I DCI — Musculoskeletal / Cutaneous',
+        items: [
+          'Joint pain ("the bends") — typically shoulders, elbows, knees',
+          'Skin mottling or marbling (cutis marmorata)',
+          'Fatigue, malaise',
+          'Lymphatic obstruction (localised swelling)',
+          'Onset typically within 1-6 hours of surfacing',
+        ],
+      },
+      {
+        heading: 'Type II DCI — Neurological / Cardiopulmonary',
+        items: [
+          'Numbness, tingling, weakness in limbs',
+          'Difficulty walking, loss of coordination',
+          'Urinary retention or incontinence',
+          'Visual disturbance, vertigo, hearing loss',
+          'Respiratory symptoms ("the chokes") — rare but serious',
+          'Confusion, altered consciousness',
+        ],
+      },
+      {
+        heading: 'Arterial Gas Embolism (AGE)',
+        items: [
+          'Onset within minutes of surfacing',
+          'Sudden unconsciousness',
+          'Seizures, hemiplegia',
+          'Cardiac arrest possible',
+          'Often associated with rapid/emergency ascent',
+          'Lung overexpansion injury',
+        ],
+      },
+      {
+        heading: 'Immediate Management',
+        items: [
+          '100% oxygen via reservoir mask — do not stop',
+          'Lay flat (supine) — recovery position if unconscious',
+          'IV fluids — 1L normal saline over 1 hour',
+          'Full neurological examination — document baseline',
+          'Call diving medicine physician EARLY',
+          'Arrange recompression — patient to chamber',
+          'Do NOT recompress in water',
+          'Keep nil by mouth if recompression likely',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'gas-laws',
+    title: 'Gas Laws Quick Reference',
+    category: 'Diving Physics',
+    moduleRef: 'O1_2',
+    icon: 'beaker',
+    content: [
+      {
+        heading: "Boyle's Law — Pressure & Volume",
+        items: [
+          'P₁V₁ = P₂V₂ (at constant temperature)',
+          'As pressure increases, volume decreases proportionally',
+          'Clinical relevance: barotrauma (squeeze, lung overexpansion)',
+          '10m depth = 2 ATA → gas volume halved',
+          '30m depth = 4 ATA → gas volume quartered',
+        ],
+      },
+      {
+        heading: "Dalton's Law — Partial Pressures",
+        items: [
+          'Total pressure = sum of individual gas partial pressures',
+          'ppO₂ = FiO₂ × ambient pressure',
+          'Air at 50m (6 ATA): ppO₂ = 0.21 × 6 = 1.26 ATA',
+          'Clinical relevance: gas toxicity thresholds',
+          'ppO₂ >1.6 ATA = CNS oxygen toxicity risk',
+          'ppN₂ >3.2 ATA = nitrogen narcosis onset',
+        ],
+      },
+      {
+        heading: "Henry's Law — Gas Dissolution",
+        items: [
+          'Gas dissolved in liquid is proportional to partial pressure',
+          'More gas dissolves at higher pressure (depth)',
+          'On ascent, dissolved gas comes out of solution',
+          'If ascent too fast → bubbles form in tissues',
+          'Clinical relevance: decompression illness',
+        ],
+      },
+      {
+        heading: 'Pressure at Depth',
+        items: [
+          'Surface = 1 ATA (1 bar)',
+          '10m = 2 ATA',
+          '20m = 3 ATA',
+          '30m = 4 ATA',
+          '40m = 5 ATA',
+          '50m = 6 ATA',
+          'Each 10m adds 1 ATA',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'drug-doses',
+    title: 'DMAC 15 Drug Reference',
+    category: 'Pharmacology',
+    moduleRef: 'O3_3',
+    icon: 'pill',
+    content: [
+      {
+        heading: 'Emergency Drugs',
+        items: [
+          'Adrenaline (epinephrine) 1:1000 — 0.5mg IM for anaphylaxis',
+          'Adrenaline 1:10,000 — 1mg IV for cardiac arrest (per ALS protocol)',
+          'Atropine — 0.5mg IV for symptomatic bradycardia',
+          'Glucose 10% — IV for confirmed hypoglycaemia',
+          'Naloxone — 0.4mg IV/IM for opioid overdose',
+        ],
+      },
+      {
+        heading: 'Analgesics',
+        items: [
+          'Paracetamol — 1g oral/IV, max 4g/24hr',
+          'Ibuprofen — 400mg oral TDS with food',
+          'Morphine — 5-10mg IM/IV titrated to effect',
+          'Entonox (50:50 N₂O/O₂) — self-administered, contraindicated in DCI',
+          'Note: Entonox contraindicated in pneumothorax, bowel obstruction',
+        ],
+      },
+      {
+        heading: 'IV Fluids',
+        items: [
+          'Normal saline (0.9% NaCl) — standard resuscitation fluid',
+          'Hartmann\'s solution — alternative crystalloid',
+          'DCI protocol: 1L over first hour, then reassess',
+          'Burns: Parkland formula for major burns (>15% TBSA)',
+          'Monitor urine output: target >0.5ml/kg/hr',
+        ],
+      },
+      {
+        heading: 'Other Key Medications',
+        items: [
+          'Chlorphenamine — 10mg IM/IV for allergic reactions',
+          'Hydrocortisone — 200mg IV for anaphylaxis (after adrenaline)',
+          'Ondansetron — 4mg IV/IM for nausea/vomiting',
+          'Diazepam — 5-10mg IV for seizures (or PR if no IV access)',
+          'Ciprofloxacin ear drops — otitis externa in saturation',
+        ],
+      },
+      {
+        heading: 'Routes of Administration',
+        items: [
+          'Oral (PO) — simplest, requires conscious cooperative patient',
+          'Intramuscular (IM) — reliable absorption, no IV needed',
+          'Intravenous (IV) — fastest onset, requires cannulation',
+          'Subcutaneous (SC) — slower absorption than IM',
+          'Intraosseous (IO) — emergency access when IV impossible',
+          'Per rectum (PR) — alternative for seizures (diazepam)',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'neuro-exam',
+    title: 'Neurological Examination',
+    category: 'Clinical Assessment',
+    moduleRef: 'O1_1',
+    icon: 'brain',
+    content: [
+      {
+        heading: 'Consciousness Level',
+        items: [
+          'AVPU: Alert → Voice → Pain → Unresponsive',
+          'GCS: Eyes (1-4) + Verbal (1-5) + Motor (1-6) = 3-15',
+          'GCS 15 = fully alert and oriented',
+          'GCS ≤8 = cannot protect airway, consider intubation',
+          'Record exact components, not just total',
+        ],
+      },
+      {
+        heading: 'Cranial Nerves (Key Tests)',
+        items: [
+          'Pupils: size (mm), equality, reactivity to light',
+          'Facial symmetry: ask patient to smile, raise eyebrows',
+          'Eye movements: follow finger in H pattern',
+          'Speech: clear, slurred, or absent',
+        ],
+      },
+      {
+        heading: 'Motor Assessment',
+        items: [
+          'Test all four limbs against resistance',
+          'Grade 0-5 scale (0 = no movement, 5 = full power)',
+          'Compare left vs right — asymmetry is significant',
+          'Grip strength: squeeze two fingers bilaterally',
+          'Heel-toe walking: tests coordination',
+          'Finger-nose test: tests cerebellar function',
+        ],
+      },
+      {
+        heading: 'Sensory Assessment',
+        items: [
+          'Light touch: cotton wool to all dermatomes',
+          'Sharp/dull discrimination',
+          'Compare left vs right symmetry',
+          'Key dermatome levels: C5 (deltoid), T4 (nipple line), T10 (umbilicus), L1 (groin)',
+          'Document any areas of reduced or altered sensation',
+        ],
+      },
+      {
+        heading: 'DCI-Specific Checks',
+        items: [
+          'Romberg test: stand feet together, eyes closed',
+          'Heel-toe walk: straight line, heel to toe',
+          'Rapid alternating movements: hand patting',
+          'Babinski sign: plantar reflex',
+          'Always compare to baseline examination',
+          'Any new deficit = assume DCI until proven otherwise',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'shock-types',
+    title: 'Shock Recognition & Management',
+    category: 'Emergency Care',
+    moduleRef: 'O3_1',
+    icon: 'heart',
+    content: [
+      {
+        heading: 'Signs of Shock (General)',
+        items: [
+          'Tachycardia (early sign)',
+          'Hypotension (late sign — indicates significant loss)',
+          'Tachypnoea',
+          'Pale, cool, clammy skin',
+          'Prolonged capillary refill (>2 seconds)',
+          'Altered consciousness, confusion, agitation',
+          'Reduced urine output',
+        ],
+      },
+      {
+        heading: 'Hypovolaemic Shock',
+        items: [
+          'Cause: blood or fluid loss',
+          'Management: stop bleeding, IV fluids, keep warm',
+          'Class I (<750ml): minimal signs',
+          'Class II (750-1500ml): tachycardia, anxiety',
+          'Class III (1500-2000ml): hypotension, confusion',
+          'Class IV (>2000ml): life-threatening, imminent arrest',
+        ],
+      },
+      {
+        heading: 'Anaphylaxis',
+        items: [
+          'Airway swelling, stridor, wheeze',
+          'Urticaria, angioedema',
+          'Hypotension, tachycardia',
+          'IMMEDIATE: Adrenaline 0.5mg IM (1:1000) — anterolateral thigh',
+          'Repeat adrenaline at 5 minutes if no improvement',
+          'High-flow oxygen',
+          'IV fluid bolus',
+          'Chlorphenamine 10mg IM/IV + Hydrocortisone 200mg IV',
+        ],
+      },
+      {
+        heading: 'Other Types',
+        items: [
+          'Cardiogenic: heart failure — do NOT overload with fluids',
+          'Neurogenic: spinal injury — warm, low-volume fluids',
+          'Septic: infection — antibiotics, IV fluids, early transfer',
+          'Always treat the cause, not just the symptoms',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'burns-assessment',
+    title: 'Burns Assessment',
+    category: 'Emergency Care',
+    moduleRef: 'O3_1',
+    icon: 'fire',
+    content: [
+      {
+        heading: 'Burn Depth',
+        items: [
+          'Superficial (epidermal): red, painful, no blisters — sunburn',
+          'Partial thickness (dermal): blistered, very painful, moist',
+          'Full thickness: white/charred, painless, leathery',
+          'Deep burns may be painless due to nerve destruction',
+        ],
+      },
+      {
+        heading: 'Rule of Nines (Adult TBSA)',
+        items: [
+          'Head & neck: 9%',
+          'Each arm: 9%',
+          'Chest (front): 9%',
+          'Abdomen (front): 9%',
+          'Upper back: 9%',
+          'Lower back: 9%',
+          'Each leg (front): 9%',
+          'Each leg (back): 9%',
+          'Perineum: 1%',
+          "Patient's palm (including fingers) ≈ 1% TBSA",
+        ],
+      },
+      {
+        heading: 'Management',
+        items: [
+          'Cool running water for 20 minutes (within 3 hours of injury)',
+          'Remove jewellery and non-adherent clothing',
+          'Cling film: lengthwise strips, do NOT wrap circumferentially',
+          'IV fluids if >15% TBSA (Parkland formula)',
+          'Analgesia: morphine IV titrated',
+          'Do NOT burst blisters',
+          'Burns to face, hands, feet, genitals, circumferential = specialist referral',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'o2-toxicity',
+    title: 'Oxygen Toxicity — VENTID-C',
+    category: 'Diving Medicine',
+    moduleRef: 'O2_1',
+    icon: 'alert',
+    content: [
+      {
+        heading: 'VENTID-C Recognition Tool',
+        items: [
+          'V — Visual disturbance (tunnel vision, blurring)',
+          'E — Ear symptoms (tinnitus, ringing)',
+          'N — Nausea, vomiting',
+          'T — Twitching (facial muscles, lips)',
+          'I — Irritability, restlessness, anxiety',
+          'D — Dizziness, vertigo',
+          'C — Convulsions (may be the first sign with no warning)',
+        ],
+      },
+      {
+        heading: 'CNS Oxygen Toxicity',
+        items: [
+          'Risk increases with ppO₂ >1.6 ATA',
+          'Onset unpredictable — may have no warning signs',
+          'Seizures underwater = high drowning risk',
+          'Management: reduce ppO₂ immediately (ascend or switch gas)',
+          'If seizing: protect airway, do NOT restrain',
+          'Remove from water if possible',
+        ],
+      },
+      {
+        heading: 'Pulmonary Oxygen Toxicity',
+        items: [
+          'Results from prolonged exposure to elevated ppO₂',
+          'Onset over hours to days (not as acute as CNS)',
+          'Symptoms: chest tightness, cough, reduced vital capacity',
+          'Management: reduce FiO₂, supportive care',
+          'Relevant during therapeutic recompression and saturation',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'hypothermia',
+    title: 'Hypothermia Staging',
+    category: 'Emergency Care',
+    moduleRef: 'O3_2',
+    icon: 'thermometer',
+    content: [
+      {
+        heading: 'Classification',
+        items: [
+          'Mild (35-32°C): shivering, cold, alert, tachycardic',
+          'Moderate (32-28°C): shivering stops, confusion, drowsiness, bradycardia',
+          'Severe (<28°C): unconscious, rigid, very slow pulse, risk of VF',
+          'Core temperature must be measured (tympanic or oesophageal)',
+          'Peripheral (skin) temperature is unreliable',
+        ],
+      },
+      {
+        heading: 'Management Principles',
+        items: [
+          'Handle gently — rough handling can trigger VF in severe hypothermia',
+          'Remove wet clothing, insulate, prevent further heat loss',
+          'Mild: active external rewarming (warm blankets, warm environment)',
+          'Moderate/Severe: passive rewarming, warm IV fluids (38-42°C)',
+          'Severe: avoid active rewarming of peripheries (afterdrop risk)',
+          'DO NOT give hot drinks to confused/unconscious patients',
+        ],
+      },
+      {
+        heading: 'Cardiac Arrest in Hypothermia',
+        items: [
+          '"Not dead until warm and dead"',
+          'Continue CPR — may need prolonged resuscitation',
+          'AED: if temp <30°C, give one shock then defer further until rewarmed',
+          'Withhold adrenaline until core temp >30°C',
+          'Double intervals between drug doses until >35°C',
+          'Rewarm to at least 32°C before declaring death',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'drowning',
+    title: 'Drowning Management',
+    category: 'Emergency Care',
+    moduleRef: 'O3_2',
+    icon: 'water',
+    content: [
+      {
+        heading: 'Key Modifications',
+        items: [
+          'Start with 5 rescue breaths (not 2 as in standard BLS)',
+          'Oxygen is the priority — hypoxia is the primary mechanism',
+          'Assume C-spine injury if: diving, fall from height, unknown mechanism',
+          'Cold water: may have protective effect — continue prolonged resuscitation',
+          'Saltwater vs freshwater: clinical management is the same',
+        ],
+      },
+      {
+        heading: 'In-Water Rescue',
+        items: [
+          'Rescue breaths can be started in water if trained',
+          'Chest compressions require a firm surface — not effective in water',
+          'Remove from water as quickly and safely as possible',
+          'Maintain horizontal position during extraction if possible',
+        ],
+      },
+      {
+        heading: 'Post-Rescue Management',
+        items: [
+          'High-flow O₂ via reservoir mask',
+          'Anticipate vomiting — suction ready, recovery position',
+          'Treat hypothermia concurrently',
+          'All near-drowning patients must go to hospital',
+          'Secondary drowning risk: pulmonary oedema hours later',
+          'Monitor SpO₂ continuously',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'sbar-atmist',
+    title: 'SBAR & ATMIST Handover',
+    category: 'Communications',
+    moduleRef: 'RM5',
+    icon: 'radio',
+    content: [
+      {
+        heading: 'SBAR (Physician Communication)',
+        items: [
+          'S — Situation: "I have a diver with suspected DCI"',
+          'B — Background: dive profile, onset time, medical history',
+          'A — Assessment: vital signs, neuro exam findings, current treatment',
+          'R — Recommendation: "I need guidance on recompression" / "Requesting medevac"',
+        ],
+      },
+      {
+        heading: 'ATMIST (Emergency Handover)',
+        items: [
+          'A — Age and sex',
+          'T — Time of incident',
+          'M — Mechanism of injury / Medical complaint',
+          'I — Injuries / Illness found',
+          'S — Signs and symptoms (vital signs)',
+          'T — Treatment given so far',
+        ],
+      },
+      {
+        heading: 'Communication Tips',
+        items: [
+          'Call the physician EARLY — do not wait for deterioration',
+          'State clearly: "I need advice" or "I need to hand over care"',
+          'Read back critical instructions',
+          'Document the conversation: time, who you spoke to, advice given',
+          'Use closed-loop communication for drug orders',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'barotrauma',
+    title: 'Barotrauma Types',
+    category: 'Diving Medicine',
+    moduleRef: 'O2_2',
+    icon: 'ear',
+    content: [
+      {
+        heading: 'Middle Ear Barotrauma (Squeeze)',
+        items: [
+          'Most common barotrauma in diving',
+          'Cause: Eustachian tube fails to open on descent',
+          'Symptoms: ear pain, fullness, possible bleeding',
+          'Tympanic membrane may rupture (sudden relief of pain, vertigo, water entry)',
+          'Management: stop descent, ascend slightly, gentle equalisation',
+          'Prevention: equalise early and often, avoid diving with a cold',
+        ],
+      },
+      {
+        heading: 'Inner Ear Barotrauma',
+        items: [
+          'More serious than middle ear — can cause permanent damage',
+          'Cause: forceful Valsalva, sudden pressure change',
+          'Symptoms: vertigo, sensorineural hearing loss, tinnitus, nausea',
+          'Round window rupture (perilymph fistula) possible',
+          'Management: URGENT same-day ENT referral',
+          'Do NOT continue diving',
+          'Must distinguish from inner ear DCI (different treatment)',
+        ],
+      },
+      {
+        heading: 'Pulmonary Barotrauma',
+        items: [
+          'Lung overexpansion on ascent (especially if breath-holding)',
+          'Can occur from as little as 1-2 metres depth',
+          'Complications: pneumothorax, mediastinal emphysema, AGE',
+          'Tension pneumothorax: deviated trachea, absent breath sounds, shock',
+          'Management: high-flow O₂, needle decompression if tension',
+          'AGE: treat as per DCI protocol',
+        ],
+      },
+      {
+        heading: 'Other Barotrauma',
+        items: [
+          'Sinus squeeze: facial pain, epistaxis (nosebleed)',
+          'Dental squeeze: pain in teeth with fillings or decay',
+          'Mask squeeze: subconjunctival haemorrhage, facial bruising',
+          'Suit squeeze: skin folds pinched in dry suit',
+        ],
+      },
+    ],
+  },
+]
+
+export const referenceCategories = [
+  'Clinical Assessment',
+  'Diving Medicine',
+  'Diving Physics',
+  'Emergency Care',
+  'Pharmacology',
+  'Communications',
+]

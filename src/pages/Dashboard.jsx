@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getModulesByDay, getModulesForCourse } from '../modules/moduleData'
 import { getModuleProgress } from '../firebase/firestore'
@@ -104,18 +105,20 @@ export default function Dashboard() {
         <div className="card">
           <h3 className="font-heading text-sm font-semibold text-navy mb-2">Reference Library</h3>
           <p className="text-sm text-text-muted mb-3">
-            Access quick-reference cards and clinical guidelines.
+            Quick-reference cards for ABCDE, DCI, drug doses, and more.
           </p>
-          <a href="/reference-library" className="text-sm text-teal font-medium hover:underline">
-            Open library &rarr;
-          </a>
+          <Link to="/reference-library" className="text-sm text-teal font-medium hover:underline">
+            Open references &rarr;
+          </Link>
         </div>
         <div className="card">
-          <h3 className="font-heading text-sm font-semibold text-navy mb-2">Pre-session Briefs</h3>
+          <h3 className="font-heading text-sm font-semibold text-navy mb-2">File Library</h3>
           <p className="text-sm text-text-muted mb-3">
-            Preparatory reading for upcoming in-person sessions.
+            Download guidance notes, forms, and course materials.
           </p>
-          <span className="text-sm text-text-muted">Coming soon</span>
+          <Link to="/file-library" className="text-sm text-teal font-medium hover:underline">
+            Browse files &rarr;
+          </Link>
         </div>
         <div className="card">
           <h3 className="font-heading text-sm font-semibold text-navy mb-2">Upcoming Sessions</h3>
