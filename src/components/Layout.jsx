@@ -27,6 +27,7 @@ export default function Layout({ children }) {
   const adminLinks = [
     { to: '/admin', label: 'Dashboard' },
     { to: '/admin/cohorts', label: 'Cohorts' },
+    { to: '/admin/sessions', label: 'Sessions' },
     { to: '/admin/candidates', label: 'Candidates' },
     { to: '/admin/files', label: 'Files' },
   ]

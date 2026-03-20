@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getModulesByDay, getModulesForCourse } from '../modules/moduleData'
-import { getModuleProgress } from '../firebase/firestore'
+import {
+  getModuleProgress,
+  getSessionsForCohort,
+  getAttendanceForCandidate,
+} from '../firebase/firestore'
 import Layout from '../components/Layout'
 import ModuleCard from '../components/ModuleCard'
 import ProgressBar from '../components/ProgressBar'
@@ -12,22 +16,34 @@ const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday']
 export default function Dashboard() {
   const { currentUser, userProfile } = useAuth()
   const [progress, setProgress] = useState({})
+  const [sessions, setSessions] = useState([])
+  const [attendedSessionIds, setAttendedSessionIds] = useState(new Set())
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function loadProgress() {
+    async function loadData() {
       if (currentUser) {
         try {
           const p = await getModuleProgress(currentUser.uid)
           setProgress(p)
+
+          // Load sessions for the candidate's cohort
+          if (userProfile?.cohortId) {
+            const sess = await getSessionsForCohort(userProfile.cohortId)
+            setSessions(sess)
+
+            // Load attendance records for this candidate
+            const attendance = await getAttendanceForCandidate(currentUser.uid)
+            setAttendedSessionIds(new Set(attendance.map((a) => a.sessionId)))
+          }
         } catch (err) {
-          console.error('Error loading progress:', err)
+          console.error('Error loading data:', err)
         }
       }
       setLoading(false)
     }
-    loadProgress()
-  }, [currentUser])
+    loadData()
+  }, [currentUser, userProfile])
 
   if (loading) {
     return (
@@ -100,7 +116,101 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Sidebar-style info */}
+      {/* Upcoming Sessions */}
+      {sessions.length > 0 && (
+        <div className="mt-10">
+          <h2 className="font-heading text-lg font-semibold text-navy mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Your Sessions
+          </h2>
+          <div className="space-y-3">
+            {sessions.map((session) => {
+              const sessionDate = session.date?.toDate ? session.date.toDate() : new Date(session.date)
+              const isPast = sessionDate < new Date()
+              const attended = attendedSessionIds.has(session.id)
+
+              return (
+                <div
+                  key={session.id}
+                  className={`card flex flex-col sm:flex-row sm:items-center gap-4 ${isPast ? 'opacity-70' : ''}`}
+                >
+                  {/* Date block */}
+                  <div className="flex-shrink-0 w-14 text-center">
+                    <div className="text-xs text-text-muted uppercase">
+                      {sessionDate.toLocaleDateString('en-GB', { weekday: 'short' })}
+                    </div>
+                    <div className="text-2xl font-bold text-navy">
+                      {sessionDate.getDate()}
+                    </div>
+                    <div className="text-xs text-text-muted">
+                      {sessionDate.toLocaleDateString('en-GB', { month: 'short' })}
+                    </div>
+                  </div>
+
+                  {/* Session info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-heading text-sm font-semibold text-navy truncate">
+                      {session.title}
+                    </h3>
+                    <div className="flex flex-wrap gap-2 mt-1 text-xs text-text-muted">
+                      <span>
+                        {sessionDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      <span>{session.duration}</span>
+                      <span className={`font-medium px-1.5 py-0.5 rounded ${
+                        session.type === 'online' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'
+                      }`}>
+                        {session.type === 'online' ? 'Online' : 'In-Person'}
+                      </span>
+                      {session.instructor && (
+                        <span className="px-1.5 py-0.5 rounded bg-gray-100">
+                          {session.instructor === 'DMP' ? 'Diving Medical Physician' :
+                           session.instructor === 'SI' ? 'Senior Instructor' :
+                           session.instructor}
+                        </span>
+                      )}
+                    </div>
+                    {session.location && (
+                      <p className="text-xs text-text-muted mt-1">{session.location}</p>
+                    )}
+                  </div>
+
+                  {/* Right side: Join link or attendance status */}
+                  <div className="flex-shrink-0 flex items-center gap-3">
+                    {isPast ? (
+                      <span className={`text-xs font-medium px-3 py-1.5 rounded-full ${
+                        attended
+                          ? 'bg-success-green/10 text-success-green'
+                          : 'bg-gray-100 text-text-muted'
+                      }`}>
+                        {attended ? 'Attended' : 'Not recorded'}
+                      </span>
+                    ) : session.meetingLink ? (
+                      <a
+                        href={session.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-white bg-teal hover:bg-teal/90 px-4 py-2 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Join
+                      </a>
+                    ) : (
+                      <span className="text-xs text-text-muted">Link TBC</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Resources */}
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="card">
           <h3 className="font-heading text-sm font-semibold text-navy mb-2">Reference Library</h3>
@@ -119,13 +229,6 @@ export default function Dashboard() {
           <Link to="/file-library" className="text-sm text-teal font-medium hover:underline">
             Browse files &rarr;
           </Link>
-        </div>
-        <div className="card">
-          <h3 className="font-heading text-sm font-semibold text-navy mb-2">Upcoming Sessions</h3>
-          <p className="text-sm text-text-muted mb-3">
-            Your next in-person session dates and location details.
-          </p>
-          <span className="text-sm text-text-muted">Dates to be confirmed</span>
         </div>
       </div>
     </Layout>

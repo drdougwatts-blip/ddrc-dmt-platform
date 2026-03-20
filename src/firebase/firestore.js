@@ -131,3 +131,98 @@ export async function getCandidateProgress(uid) {
   const snapshot = await getDocs(progressRef)
   return snapshot.docs.map((d) => d.data())
 }
+
+// --- Sessions ---
+
+export async function createSession(sessionData) {
+  const docRef = await addDoc(collection(db, 'sessions'), {
+    ...sessionData,
+    createdAt: Timestamp.now(),
+  })
+  return docRef.id
+}
+
+export async function getSessionsForCohort(cohortId) {
+  const q = query(
+    collection(db, 'sessions'),
+    where('cohortId', '==', cohortId),
+    orderBy('date', 'asc')
+  )
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+}
+
+export async function updateSession(sessionId, data) {
+  const sessionRef = doc(db, 'sessions', sessionId)
+  await updateDoc(sessionRef, data)
+}
+
+export async function deleteSession(sessionId) {
+  const { deleteDoc: del } = await import('firebase/firestore')
+  const sessionRef = doc(db, 'sessions', sessionId)
+  await del(sessionRef)
+}
+
+// --- Attendance ---
+
+export async function getAttendanceForSession(sessionId) {
+  const q = query(
+    collection(db, 'attendance'),
+    where('sessionId', '==', sessionId)
+  )
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+}
+
+export async function setAttendance(sessionId, cohortId, candidateUid, candidateName, attended, markedBy) {
+  // Check if attendance record already exists
+  const q = query(
+    collection(db, 'attendance'),
+    where('sessionId', '==', sessionId),
+    where('candidateUid', '==', candidateUid)
+  )
+  const snapshot = await getDocs(q)
+
+  if (!snapshot.empty) {
+    // Update existing record
+    const docSnap = snapshot.docs[0]
+    await updateDoc(doc(db, 'attendance', docSnap.id), {
+      attended,
+      markedBy,
+      markedAt: Timestamp.now(),
+    })
+  } else {
+    // Create new record
+    await addDoc(collection(db, 'attendance'), {
+      sessionId,
+      cohortId,
+      candidateUid,
+      candidateName,
+      attended,
+      markedBy,
+      markedAt: Timestamp.now(),
+    })
+  }
+}
+
+export async function getAttendanceForCandidate(candidateUid) {
+  const q = query(
+    collection(db, 'attendance'),
+    where('candidateUid', '==', candidateUid),
+    where('attended', '==', true)
+  )
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+}
+
+// --- Candidates by Cohort ---
+
+export async function getCandidatesForCohort(cohortId) {
+  const q = query(
+    collection(db, 'users'),
+    where('role', '==', 'candidate'),
+    where('cohortId', '==', cohortId)
+  )
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+}

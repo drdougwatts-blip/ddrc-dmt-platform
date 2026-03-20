@@ -127,16 +127,16 @@ export default function AdminDashboard() {
           </div>
         </Link>
 
-        <Link to="/admin/cohorts" className="card hover:shadow-md transition-shadow duration-150">
+        <Link to="/admin/sessions" className="card hover:shadow-md transition-shadow duration-150">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-warning-amber/10 rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-warning-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
             <div>
-              <h3 className="font-heading text-sm font-semibold text-navy">Manage Cohorts</h3>
-              <p className="text-xs text-text-muted">View and manage enrolment codes</p>
+              <h3 className="font-heading text-sm font-semibold text-navy">Sessions & Attendance</h3>
+              <p className="text-xs text-text-muted">Schedule sessions and track attendance</p>
             </div>
           </div>
         </Link>

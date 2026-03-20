@@ -10,6 +10,7 @@ import ReferenceLibrary from './pages/ReferenceLibrary'
 import FileLibrary from './pages/FileLibrary'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminCohorts from './pages/AdminCohorts'
+import AdminSessions from './pages/AdminSessions'
 import AdminCandidates from './pages/AdminCandidates'
 
 export default function App() {
@@ -41,6 +42,9 @@ export default function App() {
           } />
           <Route path="/admin/cohorts" element={
             <AdminRoute><AdminCohorts /></AdminRoute>
+          } />
+          <Route path="/admin/sessions" element={
+            <AdminRoute><AdminSessions /></AdminRoute>
           } />
           <Route path="/admin/candidates" element={
             <AdminRoute><AdminCandidates /></AdminRoute>

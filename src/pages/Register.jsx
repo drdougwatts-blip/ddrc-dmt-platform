@@ -54,6 +54,7 @@ export default function Register() {
         role: 'candidate',
         courseType: codeResult.data.courseType,
         enrolmentCode: enrolmentCode.trim(),
+        cohortId: codeResult.docId,
       })
 
       // Increment code usage
