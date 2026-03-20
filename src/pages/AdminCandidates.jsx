@@ -2,16 +2,24 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 import ProgressBar from '../components/ProgressBar'
-import { getAllCandidates, getModuleProgress } from '../firebase/firestore'
-import { getModulesForCourse, getModuleById } from '../modules/moduleData'
+import { useAuth } from '../context/AuthContext'
+import {
+  getAllCandidates,
+  getModuleProgress,
+  signOffModule,
+  revokeSignOff,
+} from '../firebase/firestore'
+import { getModulesForCourse } from '../modules/moduleData'
 
 export default function AdminCandidates() {
+  const { currentUser } = useAuth()
   const [candidates, setCandidates] = useState([])
   const [candidateProgress, setCandidateProgress] = useState({})
   const [loading, setLoading] = useState(true)
   const [filterCourse, setFilterCourse] = useState('all')
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [selectedProgress, setSelectedProgress] = useState([])
+  const [signingOff, setSigningOff] = useState({})
 
   useEffect(() => {
     loadCandidates()
@@ -22,7 +30,6 @@ export default function AdminCandidates() {
       const data = await getAllCandidates()
       setCandidates(data)
 
-      // Load progress for each candidate
       const progressMap = {}
       for (const candidate of data) {
         const progress = await getModuleProgress(candidate.uid)
@@ -43,9 +50,50 @@ export default function AdminCandidates() {
     const courseModules = getModulesForCourse(candidate.courseType)
     const detailed = courseModules.map((mod) => ({
       ...mod,
-      progress: progress[mod.id] || { status: 'not_started', quizScore: null, quizAttempts: 0 },
+      progress: progress[mod.id] || {
+        status: 'not_started',
+        quizScore: null,
+        quizAttempts: 0,
+        signedOff: false,
+      },
     }))
     setSelectedProgress(detailed)
+  }
+
+  async function handleToggleSignOff(candidateUid, moduleId, currentlySignedOff, sharedWith) {
+    setSigningOff((prev) => ({ ...prev, [moduleId]: true }))
+    try {
+      if (currentlySignedOff) {
+        await revokeSignOff(candidateUid, moduleId)
+        if (sharedWith) await revokeSignOff(candidateUid, sharedWith)
+      } else {
+        await signOffModule(candidateUid, moduleId, currentUser.uid)
+        if (sharedWith) await signOffModule(candidateUid, sharedWith, currentUser.uid)
+      }
+      // Reload progress
+      const progress = await getModuleProgress(candidateUid)
+      const courseModules = getModulesForCourse(selectedCandidate.courseType)
+      const detailed = courseModules.map((mod) => ({
+        ...mod,
+        progress: progress[mod.id] || {
+          status: 'not_started',
+          quizScore: null,
+          quizAttempts: 0,
+          signedOff: false,
+        },
+      }))
+      setSelectedProgress(detailed)
+
+      // Update summary progress
+      const completed = courseModules.filter((m) => progress[m.id]?.status === 'complete').length
+      setCandidateProgress((prev) => ({
+        ...prev,
+        [candidateUid]: { progress, completed, total: courseModules.length },
+      }))
+    } catch (err) {
+      console.error('Error toggling sign-off:', err)
+    }
+    setSigningOff((prev) => ({ ...prev, [moduleId]: false }))
   }
 
   function formatDate(timestamp) {
@@ -64,11 +112,12 @@ export default function AdminCandidates() {
 
   function exportCSV() {
     if (!selectedCandidate) return
-    const headers = ['Module Code', 'Module Title', 'Status', 'Quiz Score', 'Quiz Attempts', 'Started', 'Completed']
+    const headers = ['Module Code', 'Module Title', 'Status', 'Signed Off', 'Quiz Score', 'Quiz Attempts', 'Started', 'Completed']
     const rows = selectedProgress.map((m) => [
       m.code,
       m.title,
       m.progress.status,
+      m.progress.signedOff ? 'Yes' : 'No',
       m.progress.quizScore ?? '',
       m.progress.quizAttempts,
       m.progress.startedAt ? formatDateTime(m.progress.startedAt) : '',
@@ -114,6 +163,8 @@ export default function AdminCandidates() {
   // Detail view
   if (selectedCandidate) {
     const cp = candidateProgress[selectedCandidate.uid]
+    const signedOffCount = selectedProgress.filter((m) => m.progress.signedOff).length
+
     return (
       <Layout>
         <button
@@ -149,6 +200,9 @@ export default function AdminCandidates() {
           {cp && (
             <div className="mt-4">
               <ProgressBar completed={cp.completed} total={cp.total} />
+              <p className="text-xs text-text-muted mt-2">
+                {signedOffCount} of {selectedProgress.length} modules signed off by instructor
+              </p>
             </div>
           )}
         </div>
@@ -159,35 +213,65 @@ export default function AdminCandidates() {
               <tr className="border-b border-gray-100">
                 <th className="text-left font-medium text-text-muted px-6 py-3">Module</th>
                 <th className="text-left font-medium text-text-muted px-6 py-3">Status</th>
-                <th className="text-left font-medium text-text-muted px-6 py-3">Quiz Score</th>
-                <th className="text-left font-medium text-text-muted px-6 py-3 hidden sm:table-cell">Started</th>
-                <th className="text-left font-medium text-text-muted px-6 py-3 hidden sm:table-cell">Completed</th>
+                <th className="text-left font-medium text-text-muted px-6 py-3">Quiz</th>
+                <th className="text-center font-medium text-text-muted px-6 py-3">Sign Off</th>
+                <th className="text-left font-medium text-text-muted px-6 py-3 hidden md:table-cell">Completed</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {selectedProgress.map((m) => (
-                <tr key={m.id}>
-                  <td className="px-6 py-3">
-                    <span className="font-mono text-xs text-teal mr-2">{m.code}</span>
-                    <span className="text-text-primary">{m.title}</span>
-                  </td>
-                  <td className={`px-6 py-3 font-medium ${statusColor[m.progress.status]}`}>
-                    {statusLabel[m.progress.status]}
-                  </td>
-                  <td className="px-6 py-3 text-text-muted">
-                    {m.progress.quizScore !== null ? `${m.progress.quizScore}%` : '—'}
-                    {m.progress.quizAttempts > 0 && (
-                      <span className="text-xs ml-1">({m.progress.quizAttempts} attempts)</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-3 text-text-muted hidden sm:table-cell">
-                    {formatDateTime(m.progress.startedAt)}
-                  </td>
-                  <td className="px-6 py-3 text-text-muted hidden sm:table-cell">
-                    {formatDateTime(m.progress.completedAt)}
-                  </td>
-                </tr>
-              ))}
+              {selectedProgress.map((m) => {
+                const isSignedOff = m.progress.signedOff
+                const isSaving = signingOff[m.id]
+
+                return (
+                  <tr key={m.id} className={isSignedOff ? 'bg-success-green/5' : ''}>
+                    <td className="px-6 py-3">
+                      <span className="font-mono text-xs text-teal mr-2">{m.code}</span>
+                      <span className="text-text-primary">{m.title}</span>
+                      {m.shared && (
+                        <span className="ml-2 text-xs text-warning-amber">(shared)</span>
+                      )}
+                    </td>
+                    <td className={`px-6 py-3 font-medium ${statusColor[m.progress.status]}`}>
+                      {statusLabel[m.progress.status]}
+                    </td>
+                    <td className="px-6 py-3 text-text-muted">
+                      {m.progress.quizScore !== null ? (
+                        <span className={m.progress.quizScore >= 70 ? 'text-success-green font-medium' : ''}>
+                          {m.progress.quizScore}%
+                        </span>
+                      ) : '—'}
+                      {m.progress.quizAttempts > 0 && (
+                        <span className="text-xs ml-1">({m.progress.quizAttempts}x)</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      <button
+                        onClick={() => handleToggleSignOff(
+                          selectedCandidate.uid,
+                          m.id,
+                          isSignedOff,
+                          m.sharedWith
+                        )}
+                        disabled={isSaving}
+                        className={`w-8 h-8 rounded-lg border-2 transition-all duration-150 flex items-center justify-center mx-auto ${
+                          isSignedOff
+                            ? 'bg-success-green border-success-green text-white'
+                            : 'border-gray-300 hover:border-navy text-transparent hover:text-gray-300'
+                        } ${isSaving ? 'opacity-50' : ''}`}
+                        title={isSignedOff ? 'Revoke sign-off' : 'Sign off module'}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                    </td>
+                    <td className="px-6 py-3 text-text-muted hidden md:table-cell">
+                      {formatDateTime(m.progress.completedAt)}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

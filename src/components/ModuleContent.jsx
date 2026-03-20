@@ -128,39 +128,16 @@ function renderSection(section, index) {
   }
 }
 
-export default function ModuleContent({ moduleData, content }) {
+export default function ModuleContent({ moduleData, content, progress }) {
   const { currentUser, userProfile } = useAuth()
   const [completing, setCompleting] = useState(false)
-  const [completed, setCompleted] = useState(false)
+  const [completed, setCompleted] = useState(progress?.signedOff === true)
 
   const courseType = userProfile?.courseType
   const allModules = courseType ? getModulesForCourse(courseType) : []
   const currentIndex = allModules.findIndex((m) => m.id === moduleData.id)
   const prevModule = currentIndex > 0 ? allModules[currentIndex - 1] : null
   const nextModule = currentIndex < allModules.length - 1 ? allModules[currentIndex + 1] : null
-
-  async function handleMarkComplete() {
-    if (!currentUser) return
-    setCompleting(true)
-    try {
-      await updateModuleProgress(currentUser.uid, moduleData.id, {
-        status: 'complete',
-        completedAt: Timestamp.now(),
-      })
-      // For shared modules, also update the linked module
-      if (moduleData.sharedWith) {
-        await updateModuleProgress(currentUser.uid, moduleData.sharedWith, {
-          status: 'complete',
-          completedAt: Timestamp.now(),
-        })
-      }
-      setCompleted(true)
-    } catch (err) {
-      console.error('Failed to mark complete:', err)
-    } finally {
-      setCompleting(false)
-    }
-  }
 
   // Mark as in_progress on first view
   useState(() => {
@@ -279,23 +256,19 @@ export default function ModuleContent({ moduleData, content }) {
         </div>
       )}
 
-      {/* Mark Complete */}
+      {/* Completion status */}
       <div className="card text-center">
         {completed ? (
           <div className="flex items-center justify-center gap-2 text-success-green">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-            <span className="font-semibold">Module marked as complete</span>
+            <span className="font-semibold">Module signed off by instructor</span>
           </div>
         ) : (
-          <button
-            onClick={handleMarkComplete}
-            disabled={completing}
-            className="btn-secondary"
-          >
-            {completing ? 'Saving...' : 'Mark as Complete'}
-          </button>
+          <p className="text-sm text-text-muted">
+            Your instructor will sign off this module once you have completed the session and any required assessment.
+          </p>
         )}
       </div>
 

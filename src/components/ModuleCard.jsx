@@ -8,6 +8,7 @@ const statusConfig = {
 
 export default function ModuleCard({ module, progress }) {
   const status = progress?.status || 'not_started'
+  const isSignedOff = progress?.signedOff === true
   const config = statusConfig[status]
   const isDisabled = !module.contentReady
 
@@ -24,10 +25,20 @@ export default function ModuleCard({ module, progress }) {
             </span>
           )}
         </div>
-        <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${config.color}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`}></span>
-          {isDisabled ? 'Coming soon' : config.label}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {isSignedOff && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-success-green/10 text-success-green">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+              Signed off
+            </span>
+          )}
+          <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${config.color}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`}></span>
+            {isDisabled ? 'Coming soon' : config.label}
+          </span>
+        </div>
       </div>
 
       <h3 className="font-heading text-lg font-semibold text-navy mb-1">

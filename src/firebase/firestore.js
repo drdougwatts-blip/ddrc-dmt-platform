@@ -132,6 +132,30 @@ export async function getCandidateProgress(uid) {
   return snapshot.docs.map((d) => d.data())
 }
 
+export async function signOffModule(candidateUid, moduleId, adminUid) {
+  const progressRef = doc(db, 'users', candidateUid, 'progress', moduleId)
+  await updateDoc(progressRef, {
+    status: 'complete',
+    completedAt: Timestamp.now(),
+    completedBy: adminUid,
+    signedOff: true,
+  })
+}
+
+export async function revokeSignOff(candidateUid, moduleId) {
+  const progressRef = doc(db, 'users', candidateUid, 'progress', moduleId)
+  const existing = await getDoc(progressRef)
+  const data = existing.data()
+  // Revert to in_progress if they had started it, otherwise not_started
+  const newStatus = data?.startedAt ? 'in_progress' : 'not_started'
+  await updateDoc(progressRef, {
+    status: newStatus,
+    completedAt: null,
+    completedBy: null,
+    signedOff: false,
+  })
+}
+
 // --- Sessions ---
 
 export async function createSession(sessionData) {

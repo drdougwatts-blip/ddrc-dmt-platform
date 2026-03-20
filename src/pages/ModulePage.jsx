@@ -1,19 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getModuleById } from '../modules/moduleData'
 import { getModuleContent } from '../modules/content'
 import { getModuleQuiz } from '../modules/quizzes'
+import { getModuleProgress } from '../firebase/firestore'
 import ModuleContent from '../components/ModuleContent'
 import QuizEngine from '../components/QuizEngine'
 import Layout from '../components/Layout'
 
 export default function ModulePage() {
   const { moduleId } = useParams()
-  const { userProfile } = useAuth()
+  const { currentUser, userProfile } = useAuth()
   const navigate = useNavigate()
   const [showQuiz, setShowQuiz] = useState(false)
   const [quizScore, setQuizScore] = useState(null)
+  const [moduleProgress, setModuleProgress] = useState(null)
+
+  useEffect(() => {
+    async function loadProgress() {
+      if (currentUser && moduleId) {
+        const progress = await getModuleProgress(currentUser.uid)
+        setModuleProgress(progress[moduleId] || null)
+      }
+    }
+    loadProgress()
+  }, [currentUser, moduleId])
 
   const module = getModuleById(moduleId)
 
@@ -147,7 +159,7 @@ export default function ModulePage() {
             onComplete={handleQuizComplete}
           />
         ) : content ? (
-          <ModuleContent moduleData={module} content={content} />
+          <ModuleContent moduleData={module} content={content} progress={moduleProgress} />
         ) : (
           <div className="card text-center py-12">
             <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
