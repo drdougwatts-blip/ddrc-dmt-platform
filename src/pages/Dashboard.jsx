@@ -10,6 +10,7 @@ import {
 import Layout from '../components/Layout'
 import ModuleCard from '../components/ModuleCard'
 import ProgressBar from '../components/ProgressBar'
+import { downloadSessionICS, downloadAllSessionsICS } from '../utils/calendarExport'
 
 const onlineDayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday']
 const fullInPersonDayOrder = ['In-Person Day 1', 'In-Person Day 2', 'In-Person Day 3', 'In-Person Day 4', 'In-Person Day 5']
@@ -158,12 +159,24 @@ export default function Dashboard() {
       {/* Upcoming Sessions */}
       {sessions.length > 0 && (
         <div className="mt-10">
-          <h2 className="font-heading text-lg font-semibold text-navy mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Your Sessions
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading text-lg font-semibold text-navy flex items-center gap-2">
+              <svg className="w-5 h-5 text-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Your Sessions
+            </h2>
+            <button
+              onClick={() => downloadAllSessionsICS(sessions, 'ddrc-dmt-sessions.ics')}
+              className="btn-outline text-xs px-3 py-1.5 inline-flex items-center gap-1"
+              title="Add all sessions to your calendar"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export All to Calendar
+            </button>
+          </div>
           <div className="space-y-3">
             {sessions.map((session) => {
               const sessionDate = session.date?.toDate ? session.date.toDate() : new Date(session.date)
@@ -216,8 +229,19 @@ export default function Dashboard() {
                     )}
                   </div>
 
-                  {/* Right side: Join link or attendance status */}
+                  {/* Right side: Calendar + Join link or attendance status */}
                   <div className="flex-shrink-0 flex items-center gap-3">
+                    {!isPast && (
+                      <button
+                        onClick={() => downloadSessionICS(session)}
+                        className="text-text-muted hover:text-teal transition-colors p-1.5"
+                        title="Add to Calendar"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                    )}
                     {isPast ? (
                       <span className={`text-xs font-medium px-3 py-1.5 rounded-full ${
                         attended

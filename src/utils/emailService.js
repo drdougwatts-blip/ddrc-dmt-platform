@@ -10,6 +10,7 @@ const TEMPLATES = {
   MODULE_COMPLETE: import.meta.env.VITE_EMAILJS_TEMPLATE_MODULE || '',
   COURSE_COMPLETE: import.meta.env.VITE_EMAILJS_TEMPLATE_COURSE || '',
   ADMIN_NOTIFICATION: import.meta.env.VITE_EMAILJS_TEMPLATE_ADMIN || '',
+  SESSION_REMINDER: import.meta.env.VITE_EMAILJS_TEMPLATE_SESSION_REMINDER || '',
 }
 
 let initialized = false
@@ -130,6 +131,66 @@ export async function sendAdminNotification({
     console.error('Failed to send admin notification:', err)
     return { sent: false, reason: err.text || err.message }
   }
+}
+
+/**
+ * Send a session reminder email to a candidate.
+ */
+export async function sendSessionReminderEmail({
+  candidateName,
+  candidateEmail,
+  sessionTitle,
+  sessionDate,
+  sessionTime,
+  sessionType,
+  meetingLink,
+  location,
+  instructor,
+}) {
+  if (!isConfigured()) return { sent: false, reason: 'Email not configured' }
+
+  ensureInit()
+  try {
+    await emailjs.send(SERVICE_ID, TEMPLATES.SESSION_REMINDER, {
+      to_name: candidateName,
+      to_email: candidateEmail,
+      session_title: sessionTitle,
+      session_date: sessionDate,
+      session_time: sessionTime,
+      session_type: sessionType === 'online' ? 'Online' : 'In-Person',
+      meeting_link: meetingLink || '',
+      location: location || '',
+      instructor: instructor || '',
+      platform_url: window.location.origin,
+    })
+    return { sent: true }
+  } catch (err) {
+    console.error('Failed to send session reminder:', err)
+    return { sent: false, reason: err.text || err.message }
+  }
+}
+
+/**
+ * Send session reminders to multiple candidates.
+ * Returns { sent: number, failed: number, results: [] }
+ */
+export async function sendBulkSessionReminders(candidates, sessionDetails) {
+  const results = []
+  let sent = 0
+  let failed = 0
+
+  for (const candidate of candidates) {
+    const result = await sendSessionReminderEmail({
+      candidateName: candidate.name,
+      candidateEmail: candidate.email,
+      ...sessionDetails,
+    })
+    results.push({ ...result, name: candidate.name, email: candidate.email })
+    if (result.sent) sent++
+    else failed++
+  }
+
+  return { sent, failed, results }
 }
 
 /**

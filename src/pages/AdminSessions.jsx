@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
+import CalendarView from '../components/CalendarView'
 import { useAuth } from '../context/AuthContext'
 import { Timestamp } from 'firebase/firestore'
 import {
@@ -13,6 +14,8 @@ import {
   setAttendance,
 } from '../firebase/firestore'
 import { getModulesForCourse, getModuleById } from '../modules/moduleData'
+import { downloadSessionICS, downloadAllSessionsICS } from '../utils/calendarExport'
+import { sendBulkSessionReminders, emailIsConfigured } from '../utils/emailService'
 
 export default function AdminSessions() {
   const { currentUser } = useAuth()
@@ -21,6 +24,9 @@ export default function AdminSessions() {
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
   const [sessionsLoading, setSessionsLoading] = useState(false)
+
+  // View mode: 'list' or 'calendar'
+  const [viewMode, setViewMode] = useState('list')
 
   // Create session form
   const [showForm, setShowForm] = useState(false)
@@ -32,6 +38,20 @@ export default function AdminSessions() {
   const [formLocation, setFormLocation] = useState('DDRC Plymouth')
   const [formError, setFormError] = useState('')
   const [creating, setCreating] = useState(false)
+
+  // Bulk scheduling
+  const [showBulkForm, setShowBulkForm] = useState(false)
+  const [bulkStartDate, setBulkStartDate] = useState('')
+  const [bulkStartTime, setBulkStartTime] = useState('09:00')
+  const [bulkLocation, setBulkLocation] = useState('DDRC Plymouth')
+  const [bulkMeetingLink, setBulkMeetingLink] = useState('')
+  const [bulkPhase, setBulkPhase] = useState('all')
+  const [bulkCreating, setBulkCreating] = useState(false)
+  const [bulkProgress, setBulkProgress] = useState('')
+
+  // Reminders
+  const [sendingReminder, setSendingReminder] = useState(null)
+  const [reminderResult, setReminderResult] = useState(null)
 
   // Attendance
   const [attendanceSession, setAttendanceSession] = useState(null)
@@ -102,11 +122,9 @@ export default function AdminSessions() {
         dayLabel: mod.day,
       })
 
-      // Reload sessions
       const sess = await getSessionsForCohort(selectedCohort.id)
       setSessions(sess)
 
-      // Reset form
       setFormModuleId('')
       setFormDate('')
       setFormTime('09:00')
@@ -117,6 +135,165 @@ export default function AdminSessions() {
       setFormError('Failed to create session.')
     }
     setCreating(false)
+  }
+
+  async function handleBulkSchedule(e) {
+    e.preventDefault()
+    if (!bulkStartDate || !selectedCohort) return
+
+    setBulkCreating(true)
+    setBulkProgress('')
+
+    try {
+      const courseModules = getModulesForCourse(selectedCohort.courseType)
+      const scheduledModuleIds = new Set(sessions.map((s) => s.moduleId))
+
+      // Filter modules by phase
+      let modulesToSchedule = courseModules.filter((m) => !scheduledModuleIds.has(m.id))
+      if (bulkPhase === 'online') {
+        modulesToSchedule = modulesToSchedule.filter((m) => !m.phase || m.phase === 'online')
+      } else if (bulkPhase === 'in-person') {
+        modulesToSchedule = modulesToSchedule.filter((m) => m.phase === 'in-person')
+      }
+
+      if (modulesToSchedule.length === 0) {
+        setBulkProgress('All modules are already scheduled.')
+        setBulkCreating(false)
+        return
+      }
+
+      // Group modules by dayNumber to schedule on consecutive days
+      const dayGroups = {}
+      modulesToSchedule.forEach((m) => {
+        if (!dayGroups[m.dayNumber]) dayGroups[m.dayNumber] = []
+        dayGroups[m.dayNumber].push(m)
+      })
+
+      const dayNumbers = Object.keys(dayGroups)
+        .map(Number)
+        .sort((a, b) => a - b)
+
+      const startDate = new Date(`${bulkStartDate}T${bulkStartTime}`)
+      let created = 0
+
+      for (let dayIdx = 0; dayIdx < dayNumbers.length; dayIdx++) {
+        const dayNum = dayNumbers[dayIdx]
+        const dayModules = dayGroups[dayNum].sort((a, b) => a.sequence - b.sequence)
+
+        // Each dayNumber maps to a consecutive date
+        const sessionDate = new Date(startDate)
+        sessionDate.setDate(startDate.getDate() + dayIdx)
+
+        // Skip weekends
+        while (sessionDate.getDay() === 0 || sessionDate.getDay() === 6) {
+          sessionDate.setDate(sessionDate.getDate() + 1)
+        }
+
+        let currentTime = new Date(sessionDate)
+
+        for (const mod of dayModules) {
+          const isInPerson = mod.phase === 'in-person'
+
+          setBulkProgress(`Scheduling ${mod.code} ${mod.title}... (${created + 1}/${modulesToSchedule.length})`)
+
+          await createSession({
+            cohortId: selectedCohort.id,
+            moduleId: mod.id,
+            title: `${mod.code} ${mod.title}`,
+            date: Timestamp.fromDate(new Date(currentTime)),
+            duration: mod.duration,
+            type: isInPerson ? 'in_person' : 'online',
+            meetingLink: !isInPerson ? bulkMeetingLink : '',
+            location: isInPerson ? bulkLocation : '',
+            instructor: mod.instructor,
+            dayLabel: mod.day,
+          })
+
+          created++
+
+          // Advance time by module duration + 15 min break
+          const durationMins = parseDurationToMinutes(mod.duration)
+          currentTime.setMinutes(currentTime.getMinutes() + durationMins + 15)
+        }
+      }
+
+      setBulkProgress(`Successfully scheduled ${created} sessions.`)
+
+      // Reload sessions
+      const sess = await getSessionsForCohort(selectedCohort.id)
+      setSessions(sess)
+
+      setTimeout(() => {
+        setShowBulkForm(false)
+        setBulkProgress('')
+      }, 2000)
+    } catch (err) {
+      console.error('Error bulk scheduling:', err)
+      setBulkProgress('Error: ' + err.message)
+    }
+    setBulkCreating(false)
+  }
+
+  function parseDurationToMinutes(durationStr) {
+    if (!durationStr) return 60
+    const str = durationStr.toLowerCase()
+    let total = 0
+    const hourMatch = str.match(/([\d.]+)\s*h/)
+    if (hourMatch) total += parseFloat(hourMatch[1]) * 60
+    const minMatch = str.match(/(\d+)\s*min/)
+    if (minMatch) total += parseInt(minMatch[1], 10)
+    if (!hourMatch && !minMatch) {
+      const numMatch = str.match(/([\d.]+)/)
+      if (numMatch) {
+        const num = parseFloat(numMatch[1])
+        total = str.includes('hour') ? num * 60 : num
+      }
+    }
+    return total || 60
+  }
+
+  async function handleSendReminder(session) {
+    setSendingReminder(session.id)
+    setReminderResult(null)
+
+    try {
+      const cands = await getCandidatesForCohort(selectedCohort.id)
+      const sessionDate = session.date?.toDate ? session.date.toDate() : new Date(session.date)
+
+      const result = await sendBulkSessionReminders(cands, {
+        sessionTitle: session.title,
+        sessionDate: sessionDate.toLocaleDateString('en-GB', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }),
+        sessionTime: sessionDate.toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        sessionType: session.type,
+        meetingLink: session.meetingLink,
+        location: session.location,
+        instructor: session.instructor,
+      })
+
+      setReminderResult({
+        sessionId: session.id,
+        message: `Sent ${result.sent} reminder${result.sent !== 1 ? 's' : ''}${result.failed > 0 ? `, ${result.failed} failed` : ''}.`,
+        success: result.failed === 0,
+      })
+    } catch (err) {
+      console.error('Error sending reminders:', err)
+      setReminderResult({
+        sessionId: session.id,
+        message: 'Failed to send reminders.',
+        success: false,
+      })
+    }
+    setSendingReminder(null)
+
+    setTimeout(() => setReminderResult(null), 4000)
   }
 
   async function handleDeleteSession(sessionId) {
@@ -200,7 +377,6 @@ export default function AdminSessions() {
     ? getModulesForCourse(selectedCohort.courseType)
     : []
 
-  // Modules not yet scheduled
   const scheduledModuleIds = new Set(sessions.map((s) => s.moduleId))
   const unscheduledModules = courseModules.filter((m) => !scheduledModuleIds.has(m.id))
 
@@ -293,7 +469,7 @@ export default function AdminSessions() {
           Back to Admin
         </Link>
         <h1 className="font-heading text-2xl font-bold text-navy">Session Schedule & Attendance</h1>
-        <p className="text-text-muted text-sm mt-1">Schedule sessions with Zoom links and track attendance</p>
+        <p className="text-text-muted text-sm mt-1">Schedule sessions, send reminders, and track attendance</p>
       </div>
 
       {/* Cohort Selector */}
@@ -324,15 +500,158 @@ export default function AdminSessions() {
             ))}
           </div>
 
-          {/* Add Session Button */}
-          <div className="flex items-center justify-between mb-4">
+          {/* Action Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <h2 className="font-heading text-lg font-semibold text-navy">
               {selectedCohort?.cohortLabel} — Sessions
+              <span className="text-sm font-normal text-text-muted ml-2">
+                ({sessions.length} scheduled, {unscheduledModules.length} remaining)
+              </span>
             </h2>
-            <button onClick={() => setShowForm(!showForm)} className="btn-secondary text-sm">
-              {showForm ? 'Cancel' : '+ Add Session'}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* View toggle */}
+              <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                    viewMode === 'list' ? 'bg-navy text-white' : 'bg-white text-text-muted hover:bg-gray-50'
+                  }`}
+                >
+                  List
+                </button>
+                <button
+                  onClick={() => setViewMode('calendar')}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                    viewMode === 'calendar' ? 'bg-navy text-white' : 'bg-white text-text-muted hover:bg-gray-50'
+                  }`}
+                >
+                  Calendar
+                </button>
+              </div>
+
+              {sessions.length > 0 && (
+                <button
+                  onClick={() => downloadAllSessionsICS(sessions, `${selectedCohort?.cohortLabel || 'sessions'}.ics`)}
+                  className="btn-outline text-xs px-3 py-1.5 inline-flex items-center gap-1"
+                  title="Export all sessions as .ics file"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Export .ics
+                </button>
+              )}
+
+              <button
+                onClick={() => { setShowBulkForm(!showBulkForm); setShowForm(false) }}
+                className="btn-outline text-xs px-3 py-1.5"
+              >
+                {showBulkForm ? 'Cancel' : 'Bulk Schedule'}
+              </button>
+              <button
+                onClick={() => { setShowForm(!showForm); setShowBulkForm(false) }}
+                className="btn-secondary text-sm"
+              >
+                {showForm ? 'Cancel' : '+ Add Session'}
+              </button>
+            </div>
           </div>
+
+          {/* Bulk Schedule Form */}
+          {showBulkForm && (
+            <div className="card mb-6 border-2 border-teal/20">
+              <h3 className="font-heading text-sm font-semibold text-navy mb-1">Bulk Schedule Sessions</h3>
+              <p className="text-xs text-text-muted mb-4">
+                Automatically create sessions for all {unscheduledModules.length} unscheduled modules.
+                Modules are grouped by day and scheduled on consecutive weekdays starting from your chosen date.
+              </p>
+
+              <form onSubmit={handleBulkSchedule} className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="label">Start Date</label>
+                  <input
+                    type="date"
+                    value={bulkStartDate}
+                    onChange={(e) => setBulkStartDate(e.target.value)}
+                    className="input-field"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Daily Start Time</label>
+                  <input
+                    type="time"
+                    value={bulkStartTime}
+                    onChange={(e) => setBulkStartTime(e.target.value)}
+                    className="input-field"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Schedule Phase</label>
+                  <select
+                    value={bulkPhase}
+                    onChange={(e) => setBulkPhase(e.target.value)}
+                    className="input-field"
+                  >
+                    <option value="all">All unscheduled modules</option>
+                    <option value="online">Online modules only</option>
+                    <option value="in-person">In-person modules only</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="label">Default Meeting Link (online)</label>
+                  <input
+                    type="url"
+                    value={bulkMeetingLink}
+                    onChange={(e) => setBulkMeetingLink(e.target.value)}
+                    className="input-field"
+                    placeholder="https://zoom.us/j/..."
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="label">In-Person Location</label>
+                  <input
+                    type="text"
+                    value={bulkLocation}
+                    onChange={(e) => setBulkLocation(e.target.value)}
+                    className="input-field"
+                    placeholder="DDRC Plymouth"
+                  />
+                </div>
+
+                {bulkProgress && (
+                  <div className={`sm:col-span-2 text-sm px-4 py-3 rounded-lg ${
+                    bulkProgress.startsWith('Error')
+                      ? 'bg-error-red/10 text-error-red'
+                      : bulkProgress.startsWith('Success')
+                      ? 'bg-success-green/10 text-success-green'
+                      : 'bg-blue-50 text-blue-700'
+                  }`}>
+                    {bulkProgress}
+                  </div>
+                )}
+
+                <div className="sm:col-span-2">
+                  <button
+                    type="submit"
+                    disabled={bulkCreating || unscheduledModules.length === 0}
+                    className="btn-primary"
+                  >
+                    {bulkCreating
+                      ? 'Scheduling...'
+                      : unscheduledModules.length === 0
+                      ? 'All modules scheduled'
+                      : `Schedule ${unscheduledModules.length} Sessions`}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* Create Session Form */}
           {showForm && (
@@ -440,15 +759,17 @@ export default function AdminSessions() {
             </div>
           )}
 
-          {/* Sessions List */}
+          {/* Sessions Display */}
           {sessionsLoading ? (
             <div className="flex items-center justify-center py-10">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-navy"></div>
             </div>
           ) : sessions.length === 0 ? (
             <div className="card text-center text-text-muted py-8">
-              No sessions scheduled yet. Click "+ Add Session" to get started.
+              No sessions scheduled yet. Use "Bulk Schedule" or "+ Add Session" to get started.
             </div>
+          ) : viewMode === 'calendar' ? (
+            <CalendarView sessions={sessions} onSessionClick={(s) => openAttendance(s)} />
           ) : (
             <div className="space-y-3">
               {sessions.map((session) => {
@@ -515,7 +836,45 @@ export default function AdminSessions() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {/* Add to Calendar */}
+                      <button
+                        onClick={() => downloadSessionICS(session)}
+                        className="text-xs text-text-muted hover:text-teal p-1.5 transition-colors"
+                        title="Download .ics calendar file"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+
+                      {/* Send Reminder */}
+                      {upcoming && emailIsConfigured() && (
+                        <button
+                          onClick={() => handleSendReminder(session)}
+                          disabled={sendingReminder === session.id}
+                          className={`text-xs p-1.5 transition-colors ${
+                            sendingReminder === session.id
+                              ? 'text-text-muted opacity-50'
+                              : 'text-text-muted hover:text-teal'
+                          }`}
+                          title="Send reminder to all candidates"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* Reminder result tooltip */}
+                      {reminderResult?.sessionId === session.id && (
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          reminderResult.success ? 'bg-success-green/10 text-success-green' : 'bg-error-red/10 text-error-red'
+                        }`}>
+                          {reminderResult.message}
+                        </span>
+                      )}
+
                       <button
                         onClick={() => openAttendance(session)}
                         className="btn-outline text-xs px-3 py-1.5"
