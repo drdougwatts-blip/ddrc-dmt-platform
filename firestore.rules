@@ -13,13 +13,23 @@ service cloud.firestore {
 
     // User documents
     match /users/{userId} {
-      // Users can read and create their own document
+      // Users can read and write their own document
       allow create: if request.auth != null && request.auth.uid == userId;
       allow read, update: if request.auth != null && request.auth.uid == userId;
+
+      // Admins can read any user document (for candidate management)
+      allow read: if request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
 
       // Module progress subcollection
       match /progress/{moduleId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Admins can read progress for any candidate
+        allow read: if request.auth != null
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
       }
     }
   }

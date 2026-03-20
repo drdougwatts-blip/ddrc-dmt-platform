@@ -70,11 +70,17 @@ export default function QuizEngine({ questions, moduleId, onComplete }) {
     if (!currentUser || !moduleId) return
     setSaving(true)
     try {
+      // Fetch current best score to preserve highest
+      const { getModuleProgress } = await import('../firebase/firestore')
+      const progress = await getModuleProgress(currentUser.uid)
+      const currentBest = progress[moduleId]?.quizBestScore || 0
+      const { increment } = await import('firebase/firestore')
+
       await updateModuleProgress(currentUser.uid, moduleId, {
         quizScore: percentage,
-        quizAttempts: (await import('firebase/firestore')).increment(1),
+        quizAttempts: increment(1),
         lastQuizAt: Timestamp.now(),
-        quizBestScore: percentage, // Will be managed by the caller or Firestore
+        quizBestScore: Math.max(percentage, currentBest),
       })
     } catch (err) {
       console.error('Failed to save quiz score:', err)
