@@ -10,15 +10,23 @@ export default function ModuleCard({ module, progress }) {
   const status = progress?.status || 'not_started'
   const isSignedOff = progress?.signedOff === true
   const config = statusConfig[status]
-  const isDisabled = !module.contentReady
+  const isInPerson = module.phase === 'in-person'
+  const isDisabled = !module.contentReady && !isInPerson
 
   const CardContent = () => (
     <>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono font-semibold text-teal bg-teal/10 px-2 py-0.5 rounded">
+          <span className={`text-xs font-mono font-semibold px-2 py-0.5 rounded ${
+            isInPerson ? 'text-amber-700 bg-amber-50' : 'text-teal bg-teal/10'
+          }`}>
             {module.code}
           </span>
+          {isInPerson && (
+            <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+              In-Person
+            </span>
+          )}
           {module.shared && (
             <span className="text-xs text-warning-amber bg-warning-amber/10 px-2 py-0.5 rounded">
               Shared session
@@ -36,7 +44,7 @@ export default function ModuleCard({ module, progress }) {
           )}
           <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${config.color}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`}></span>
-            {isDisabled ? 'Coming soon' : config.label}
+            {isInPerson ? config.label : (isDisabled ? 'Coming soon' : config.label)}
           </span>
         </div>
       </div>
@@ -65,6 +73,14 @@ export default function ModuleCard({ module, progress }) {
       </div>
     </>
   )
+
+  if (isInPerson) {
+    return (
+      <div className="card border-l-4 border-l-amber-400">
+        <CardContent />
+      </div>
+    )
+  }
 
   if (isDisabled) {
     return (

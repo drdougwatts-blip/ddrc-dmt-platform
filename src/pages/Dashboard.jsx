@@ -11,7 +11,9 @@ import Layout from '../components/Layout'
 import ModuleCard from '../components/ModuleCard'
 import ProgressBar from '../components/ProgressBar'
 
-const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday']
+const onlineDayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday']
+const fullInPersonDayOrder = ['In-Person Day 1', 'In-Person Day 2', 'In-Person Day 3', 'In-Person Day 4', 'In-Person Day 5']
+const refresherInPersonDayOrder = ['In-Person Day 1', 'In-Person Day 2']
 
 export default function Dashboard() {
   const { currentUser, userProfile } = useAuth()
@@ -88,20 +90,57 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Module List by Day */}
+      {/* Phase 1: Online Modules */}
       <div className="space-y-8">
-        {dayOrder.map((day) => {
+        <h2 className="font-heading text-xl font-bold text-navy border-b border-navy/10 pb-2">
+          Phase 1: Online Theory
+        </h2>
+        {onlineDayOrder.map((day) => {
           const dayModules = modulesByDay[day]
           if (!dayModules || dayModules.length === 0) return null
 
           return (
             <section key={day}>
-              <h2 className="font-heading text-lg font-semibold text-navy mb-4 flex items-center gap-2">
+              <h3 className="font-heading text-lg font-semibold text-navy mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-full bg-navy/10 text-navy flex items-center justify-center text-sm font-bold">
                   {day.charAt(0)}
                 </span>
                 {day} — Online Sessions
-              </h2>
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {dayModules.map((mod) => (
+                  <ModuleCard
+                    key={mod.id}
+                    module={mod}
+                    progress={progress[mod.id]}
+                  />
+                ))}
+              </div>
+            </section>
+          )
+        })}
+      </div>
+
+      {/* Phase 2: In-Person Practical Modules */}
+      <div className="space-y-8 mt-12">
+        <h2 className="font-heading text-xl font-bold text-navy border-b border-teal/30 pb-2 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-teal inline-block"></span>
+          Phase 2: In-Person Practical — DDRC Plymouth
+        </h2>
+        {(courseType === 'full' ? fullInPersonDayOrder : refresherInPersonDayOrder).map((day) => {
+          const dayModules = modulesByDay[day]
+          if (!dayModules || dayModules.length === 0) return null
+
+          const dayNum = day.replace('In-Person Day ', '')
+
+          return (
+            <section key={day}>
+              <h3 className="font-heading text-lg font-semibold text-navy mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-teal/10 text-teal flex items-center justify-center text-sm font-bold">
+                  {dayNum}
+                </span>
+                {day}
+              </h3>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {dayModules.map((mod) => (
                   <ModuleCard
