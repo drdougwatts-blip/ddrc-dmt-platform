@@ -210,6 +210,34 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Course complete banner */}
+      {completedCount === allModules.length && allModules.length > 0 && (
+        <div className="mt-10 card bg-success-green/5 border border-success-green/20">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-success-green/10 flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="font-heading text-lg font-bold text-navy">Course Complete!</h3>
+              <p className="text-sm text-text-muted">
+                Congratulations — you have completed all modules. Your certificate is ready to download.
+              </p>
+            </div>
+            <Link
+              to="/certificate"
+              className="btn-primary inline-flex items-center gap-1.5 text-sm flex-shrink-0"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download Certificate
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Resources */}
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="card">
@@ -228,6 +256,17 @@ export default function Dashboard() {
           </p>
           <Link to="/file-library" className="text-sm text-teal font-medium hover:underline">
             Browse files &rarr;
+          </Link>
+        </div>
+        <div className="card">
+          <h3 className="font-heading text-sm font-semibold text-navy mb-2">Certificate</h3>
+          <p className="text-sm text-text-muted mb-3">
+            {completedCount === allModules.length && allModules.length > 0
+              ? 'Your certificate is ready to download.'
+              : `Complete all ${allModules.length} modules to unlock your certificate.`}
+          </p>
+          <Link to="/certificate" className="text-sm text-teal font-medium hover:underline">
+            View certificate &rarr;
           </Link>
         </div>
       </div>

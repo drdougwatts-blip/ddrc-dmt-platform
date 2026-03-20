@@ -12,6 +12,8 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminCohorts from './pages/AdminCohorts'
 import AdminSessions from './pages/AdminSessions'
 import AdminCandidates from './pages/AdminCandidates'
+import AdminNotifications from './pages/AdminNotifications'
+import Certificate from './pages/Certificate'
 
 export default function App() {
   return (
@@ -35,6 +37,9 @@ export default function App() {
           <Route path="/file-library" element={
             <PrivateRoute><FileLibrary /></PrivateRoute>
           } />
+          <Route path="/certificate" element={
+            <PrivateRoute><Certificate /></PrivateRoute>
+          } />
 
           {/* Admin routes */}
           <Route path="/admin" element={
@@ -51,6 +56,9 @@ export default function App() {
           } />
           <Route path="/admin/files" element={
             <AdminRoute><FileLibrary /></AdminRoute>
+          } />
+          <Route path="/admin/notifications" element={
+            <AdminRoute><AdminNotifications /></AdminRoute>
           } />
 
           {/* Default redirect */}

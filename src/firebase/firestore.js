@@ -239,6 +239,40 @@ export async function getAttendanceForCandidate(candidateUid) {
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
+// --- Certificates ---
+
+export async function saveCertificateRecord(uid, certData) {
+  const certRef = doc(db, 'users', uid, 'certificates', certData.certificateNumber)
+  await setDoc(certRef, {
+    ...certData,
+    issuedAt: Timestamp.now(),
+  })
+}
+
+export async function getCertificateRecords(uid) {
+  const certRef = collection(db, 'users', uid, 'certificates')
+  const snapshot = await getDocs(certRef)
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+}
+
+// --- Notification Log ---
+
+export async function logNotification(data) {
+  await addDoc(collection(db, 'notifications'), {
+    ...data,
+    createdAt: Timestamp.now(),
+  })
+}
+
+export async function getRecentNotifications(limitCount = 20) {
+  const q = query(
+    collection(db, 'notifications'),
+    orderBy('createdAt', 'desc')
+  )
+  const snapshot = await getDocs(q)
+  return snapshot.docs.slice(0, limitCount).map((d) => ({ id: d.id, ...d.data() }))
+}
+
 // --- Candidates by Cohort ---
 
 export async function getCandidatesForCohort(cohortId) {

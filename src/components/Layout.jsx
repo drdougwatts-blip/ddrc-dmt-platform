@@ -22,6 +22,7 @@ export default function Layout({ children }) {
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/reference-library', label: 'Reference Library' },
     { to: '/file-library', label: 'File Library' },
+    { to: '/certificate', label: 'Certificate' },
   ]
 
   const adminLinks = [
@@ -30,6 +31,7 @@ export default function Layout({ children }) {
     { to: '/admin/sessions', label: 'Sessions' },
     { to: '/admin/candidates', label: 'Candidates' },
     { to: '/admin/files', label: 'Files' },
+    { to: '/admin/notifications', label: 'Notifications' },
   ]
 
   const navLinks = isAdmin ? adminLinks : candidateLinks

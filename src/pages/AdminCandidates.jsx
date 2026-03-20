@@ -8,8 +8,17 @@ import {
   getModuleProgress,
   signOffModule,
   revokeSignOff,
+  saveCertificateRecord,
+  logNotification,
 } from '../firebase/firestore'
 import { getModulesForCourse } from '../modules/moduleData'
+import { downloadCertificate, generateCertificateNumber } from '../utils/certificateGenerator'
+import {
+  sendModuleCompleteEmail,
+  sendCourseCompleteEmail,
+  sendAdminNotification,
+  emailIsConfigured,
+} from '../utils/emailService'
 
 export default function AdminCandidates() {
   const { currentUser } = useAuth()
@@ -90,6 +99,88 @@ export default function AdminCandidates() {
         ...prev,
         [candidateUid]: { progress, completed, total: courseModules.length },
       }))
+
+      // --- Email notifications on sign-off ---
+      if (!currentlySignedOff) {
+        const signedOffModule = courseModules.find((m) => m.id === moduleId)
+
+        // Log and send module sign-off notification
+        const moduleEmailResult = await sendModuleCompleteEmail({
+          candidateName: selectedCandidate.name,
+          candidateEmail: selectedCandidate.email,
+          moduleCode: signedOffModule?.code || moduleId,
+          moduleTitle: signedOffModule?.title || moduleId,
+          completedCount: completed,
+          totalModules: courseModules.length,
+        })
+
+        await logNotification({
+          type: 'module_complete',
+          candidateName: selectedCandidate.name,
+          candidateUid,
+          details: `${signedOffModule?.code} ${signedOffModule?.title} signed off (${completed}/${courseModules.length})`,
+          emailSent: moduleEmailResult.sent,
+        })
+
+        // Check if course is now complete
+        if (completed === courseModules.length) {
+          const completionDate = new Date()
+          const certNumber = generateCertificateNumber(
+            candidateUid,
+            selectedCandidate.courseType,
+            completionDate
+          )
+
+          // Save certificate record
+          await saveCertificateRecord(candidateUid, {
+            certificateNumber: certNumber,
+            candidateName: selectedCandidate.name,
+            courseType: selectedCandidate.courseType,
+            cohortName: selectedCandidate.cohortName || '',
+            completionDate: completionDate.toISOString(),
+          })
+
+          // Send course completion email to candidate
+          const dateStr = completionDate.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          })
+          const courseEmailResult = await sendCourseCompleteEmail({
+            candidateName: selectedCandidate.name,
+            candidateEmail: selectedCandidate.email,
+            courseType: selectedCandidate.courseType,
+            certificateNumber: certNumber,
+            completionDate: dateStr,
+          })
+
+          await logNotification({
+            type: 'course_complete',
+            candidateName: selectedCandidate.name,
+            candidateUid,
+            details: `Course complete! Certificate: ${certNumber}`,
+            emailSent: courseEmailResult.sent,
+          })
+
+          // Notify admin
+          if (currentUser.email) {
+            await sendAdminNotification({
+              adminEmail: currentUser.email,
+              candidateName: selectedCandidate.name,
+              courseType: selectedCandidate.courseType,
+              completionDate: dateStr,
+            })
+          }
+
+          await logNotification({
+            type: 'certificate_issued',
+            candidateName: selectedCandidate.name,
+            candidateUid,
+            details: `Certificate ${certNumber} issued`,
+            emailSent: false,
+          })
+        }
+      }
     } catch (err) {
       console.error('Error toggling sign-off:', err)
     }
@@ -193,9 +284,36 @@ export default function AdminCandidates() {
                 </span>
               </div>
             </div>
-            <button onClick={exportCSV} className="btn-outline text-sm">
-              Export CSV
-            </button>
+            <div className="flex items-center gap-2">
+              {cp && cp.completed === cp.total && cp.total > 0 && (
+                <button
+                  onClick={() => {
+                    const completionDate = new Date()
+                    const certNumber = generateCertificateNumber(
+                      selectedCandidate.uid,
+                      selectedCandidate.courseType,
+                      completionDate
+                    )
+                    downloadCertificate({
+                      candidateName: selectedCandidate.name,
+                      courseType: selectedCandidate.courseType,
+                      completionDate,
+                      certificateNumber: certNumber,
+                      cohortName: selectedCandidate.cohortName || '',
+                    })
+                  }}
+                  className="btn-primary text-sm inline-flex items-center gap-1.5"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Certificate
+                </button>
+              )}
+              <button onClick={exportCSV} className="btn-outline text-sm">
+                Export CSV
+              </button>
+            </div>
           </div>
           {cp && (
             <div className="mt-4">

@@ -7,7 +7,8 @@ import {
   createUserDocument,
 } from '../firebase/firestore'
 import { getModulesForCourse } from '../modules/moduleData'
-import { initModuleProgress } from '../firebase/firestore'
+import { initModuleProgress, logNotification } from '../firebase/firestore'
+import { sendWelcomeEmail } from '../utils/emailService'
 
 export default function Register() {
   const [name, setName] = useState('')
@@ -65,6 +66,21 @@ export default function Register() {
       for (const mod of courseModules) {
         await initModuleProgress(user.uid, mod.id)
       }
+
+      // Send welcome email (non-blocking)
+      sendWelcomeEmail({
+        name,
+        email,
+        courseType: codeResult.data.courseType,
+      }).then((result) => {
+        logNotification({
+          type: 'welcome',
+          candidateName: name,
+          candidateUid: user.uid,
+          details: `Registered for ${codeResult.data.courseType === 'full' ? 'Full Course' : 'Refresher'}`,
+          emailSent: result.sent,
+        })
+      })
 
       navigate('/dashboard')
     } catch (err) {
